@@ -58,7 +58,7 @@ fn etas(args: &Args) -> Option<Vec<Event>> {
     }
 
     let bar = ProgressBar::new(args.t_end as u64);
-    let template = "[{elapsed_precise}] [{bar:40}] \
+    let template = "[{elapsed_precise}] {bar:50.cyan/blue} \
 {pos}/{len} -- {msg}";
     bar.set_style(ProgressStyle::with_template(template)
         .unwrap()

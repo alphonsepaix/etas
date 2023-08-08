@@ -4,7 +4,7 @@ Implémentation Rust de l'algorithme ETAS (Epidemic Type Aftershock Sequence)
 
 ### Utilisation
 
-On peut spécifier les paramètres de la simulation en ligne de commande :
+On peut spécifier les paramètres de la simulation en ligne de commande.
 
 ```shell
 Usage: etas [OPTIONS]
