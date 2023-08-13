@@ -3,7 +3,7 @@ use indicatif::{ProgressBar, ProgressStyle};
 use rand::thread_rng;
 use rand_distr::{Distribution, Exp, Poisson, Uniform};
 use std::fs::File;
-use std::io::prelude::*;
+use std::io::{BufWriter, Write};
 use std::path::Path;
 
 #[derive(Parser, Debug)]
@@ -36,6 +36,22 @@ pub struct Args {
     pub verbose: bool,
 }
 
+impl Args {
+    pub fn build() -> Result<Self, &'static str> {
+        let args = Args::parse();
+
+        if args.p <= 1.0 {
+            return Err("p must be > 1");
+        }
+
+        if args.alpha >= args.beta {
+            return Err("alpha must be < beta");
+        }
+
+        Ok(args)
+    }
+}
+
 pub struct Event {
     pub t: f32,
     pub m: f32,
@@ -43,34 +59,29 @@ pub struct Event {
 }
 
 pub fn generate_sequence(args: &Args) -> Option<Vec<Event>> {
-    let a = args.bar_n / (args.beta * args.c.powf(1.0 - args.p))
-        * (args.p - 1.0)
-        * (args.beta - args.alpha);
-    if a <= 0.0 {
-        return None;
-    }
-
-    let exp = Exp::<f32>::new(args.beta).unwrap();
-    let uniform = Uniform::<f32>::from(0.0..1.0);
     let mut rng = thread_rng();
-
     let num_events = Poisson::new(args.mu * args.t_end).unwrap().sample(&mut rng) as usize;
+
     if num_events == 0 {
         return None;
     }
+
+    let a = args.bar_n / (args.beta * args.c.powf(1.0 - args.p))
+        * (args.p - 1.0)
+        * (args.beta - args.alpha);
+    let exp = Exp::<f32>::new(args.beta).unwrap();
+    let uniform = Uniform::<f32>::from(0.0..1.0);
 
     let bg_t: Vec<f32> = Uniform::from(0.0..args.t_end)
         .sample_iter(&mut rng)
         .take(num_events)
         .collect();
-
     let bg_m: Vec<f32> = exp.sample_iter(&mut rng).take(num_events).collect();
-
     let mut seq: Vec<Event> = Vec::new();
-    for (t, m) in bg_t.iter().zip(bg_m) {
+    for (t, m) in bg_t.iter().zip(&bg_m) {
         seq.push(Event {
             t: *t,
-            m: m,
+            m: *m,
             parent: 0,
         });
     }
@@ -84,7 +95,11 @@ pub fn generate_sequence(args: &Args) -> Option<Vec<Event>> {
             .unwrap()
             .progress_chars("##-"),
     );
-    let mut m_max: f32 = 0.0;
+    let mut m_max = bg_m
+        .iter()
+        .max_by(|x, y| x.partial_cmp(y).unwrap())
+        .cloned()
+        .unwrap();
     let mut n = 0;
 
     loop {
@@ -136,10 +151,7 @@ pub fn write_to_file(seq: &Vec<Event>, filename: &String, verbose: bool) {
     let path = Path::new(filename);
     let display = path.display();
 
-    let mut file = match File::create(&path) {
-        Err(why) => panic!("couldn't create {}: {}", display, why),
-        Ok(file) => file,
-    };
+    let mut file = BufWriter::new(File::create(path).unwrap());
 
     file.write(b"ID,TIME,MAGNITUDE,PARENT\n").unwrap();
 
