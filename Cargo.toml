@@ -7,3 +7,4 @@ edition = "2021"
 clap = { version = "4.3.19", features = ["derive"] }
 indicatif = "0.17.6"
 rand = "0.8.5"
+rand_distr = "0.4.3"
