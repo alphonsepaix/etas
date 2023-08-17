@@ -174,9 +174,9 @@ pub fn write_to_file(seq: &Vec<Event>, filename: &String, verbose: bool) {
 
     let mut file = BufWriter::new(File::create(path).unwrap());
 
-    file.write(b"id,time,magnitude,parent\n").unwrap();
+    file.write_all(b"id,time,magnitude,parent\n").unwrap();
 
-    for i in 0..seq.len() {
+    for (i, _) in seq.iter().enumerate() {
         let e = &seq[i];
         file.write_fmt(format_args!("{},{},{},{}\n", i, e.t, e.m, e.parent))
             .unwrap();
