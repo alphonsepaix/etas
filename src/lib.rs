@@ -6,7 +6,8 @@ use std::fs::File;
 use std::io::{BufWriter, Write};
 use std::path::Path;
 
-#[derive(Parser, Debug)]
+#[derive(Parser)]
+#[command(about = "Programme de simulation pour le modèle ETAS")]
 pub struct Args {
     #[arg(long, default_value_t = 1.0)]
     pub mu: f32,
@@ -28,6 +29,9 @@ pub struct Args {
 
     #[arg(long, default_value_t = 1e3)]
     pub t_end: f32,
+
+    #[arg(long)]
+    pub max_len: Option<usize>,
 
     #[arg(long, default_value_t = String::from("data.csv"))]
     pub filename: String,
@@ -133,7 +137,19 @@ pub fn generate_sequence(args: &Args) -> Option<Vec<Event>> {
         }
 
         seq.sort_by(|e1, e2| e1.t.partial_cmp(&e2.t).unwrap());
+
         n += 1;
+
+        if let Some(max_len) = args.max_len {
+            if max_len == n - 1 {
+                seq = seq.into_iter().take(max_len).collect();
+                if seq.is_empty() {
+                    return None;
+                } else {
+                    return Some(seq);
+                }
+            }
+        }
 
         if n == seq.len() {
             break;
@@ -161,7 +177,13 @@ pub fn write_to_file(seq: &Vec<Event>, filename: &String, verbose: bool) {
             .unwrap();
     }
 
+    let length = seq.len();
     if verbose {
-        println!("{} events written to file '{}'.", seq.len(), display);
+        println!(
+            "{} event{} written to file '{}'.",
+            length,
+            if length == 1 { '\0' } else { 's' },
+            display
+        );
     }
 }
