@@ -4,10 +4,12 @@ Implémentation Rust de l'algorithme ETAS (Epidemic Type Aftershock Sequence)
 
 ### Utilisation
 
-On peut spécifier les paramètres de la simulation en ligne de commande.
+On peut spécifier les paramètres de la simulation en ligne de commande :
 
 ```shell
-Usage: etas [OPTIONS]
+Programme de simulation pour le modèle ETAS
+
+Usage: etas.exe [OPTIONS]
 
 Options:
       --mu <MU>              [default: 1]
@@ -17,14 +19,15 @@ Options:
       --c <C>                [default: 0.000000001]
       --beta <BETA>          [default: 2.3025851]
       --t-end <T_END>        [default: 1000]
+      --max-len <MAX_LEN>
       --filename <FILENAME>  [default: data.csv]
-      --verbose              
+      --verbose
   -h, --help                 Print help
 ```
 
 ### Installation
 
-L'outil de build Cargo est recommandé pour compiler le programme.
+L'outil de build Cargo est recommandé pour compiler le programme :
 
 ```shell
 git clone https://github.com/alphonsepaix/etas.git
