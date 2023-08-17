@@ -105,6 +105,7 @@ pub fn generate_sequence(args: &Args) -> Option<Vec<Event>> {
         .cloned()
         .unwrap();
     let mut n = 0;
+    let mut simulation_ended = false;
 
     loop {
         let mut tc = 0.0;
@@ -148,15 +149,16 @@ pub fn generate_sequence(args: &Args) -> Option<Vec<Event>> {
         }
 
         if n == seq.len() {
+            simulation_ended = true;
             break;
         }
     }
 
     if args.verbose {
-        if let Some(_) = args.max_len {
-            bar.abandon();
-        } else {
+        if simulation_ended {
             bar.finish();
+        } else {
+            bar.abandon();
         }
     }
 
