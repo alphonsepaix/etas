@@ -143,11 +143,7 @@ pub fn generate_sequence(args: &Args) -> Option<Vec<Event>> {
         if let Some(max_len) = args.max_len {
             if max_len == n - 1 {
                 seq = seq.into_iter().take(max_len).collect();
-                if seq.is_empty() {
-                    return None;
-                } else {
-                    return Some(seq);
-                }
+                break;
             }
         }
 
@@ -157,9 +153,16 @@ pub fn generate_sequence(args: &Args) -> Option<Vec<Event>> {
     }
 
     if args.verbose {
-        bar.finish();
+        if let Some(_) = args.max_len {
+            bar.abandon();
+        } else {
+            bar.finish();
+        }
     }
 
+    if seq.is_empty() {
+        return None;
+    }
     Some(seq)
 }
 
