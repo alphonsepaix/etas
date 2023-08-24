@@ -6,7 +6,7 @@ stochastic model
 ### Usage
 
 ```shell
-Programme de simulation pour le modèle ETAS
+A simple Epidemic-Type Aftershock Sequence model implementation
 
 Usage: etas.exe [OPTIONS]
 
