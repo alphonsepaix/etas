@@ -1,10 +1,9 @@
 ## ETAS
 
-Implémentation Rust de l'algorithme ETAS (Epidemic Type Aftershock Sequence)
+A simple implementation of the Epidemic-Type Aftershock Sequence
+stochastic model
 
-### Utilisation
-
-On peut spécifier les paramètres de la simulation en ligne de commande :
+### Usage
 
 ```shell
 Programme de simulation pour le modèle ETAS
@@ -26,8 +25,6 @@ Options:
 ```
 
 ### Installation
-
-L'outil de build Cargo est recommandé pour compiler le programme :
 
 ```shell
 git clone https://github.com/alphonsepaix/etas.git

@@ -7,7 +7,7 @@ use std::io::{BufWriter, Write};
 use std::path::Path;
 
 #[derive(Parser)]
-#[command(about = "Programme de simulation pour le modèle ETAS")]
+#[command(about)]
 pub struct Args {
     #[arg(long, default_value_t = 1.0)]
     pub mu: f32,
