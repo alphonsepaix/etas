@@ -1,4 +1,5 @@
 use etas::{generate_sequence, write_to_file, Args};
+use std::path::Path;
 use std::process;
 
 fn main() {
@@ -13,7 +14,32 @@ fn main() {
 
     // Launch a simulation with the provided arguments
     match generate_sequence(&args) {
-        Some(seq) => write_to_file(&seq, &args.filename, args.verbose),
-        None => println!("The sequence was empty."),
+        Ok(result) => match result {
+            Some(seq) => {
+                let path = Path::new(&args.filename);
+                match write_to_file(&seq, path) {
+                    Ok(_) => {
+                        let length = seq.len();
+                        if args.verbose {
+                            println!(
+                                "{} event{} written to file '{}'.",
+                                length,
+                                if length == 1 { '\0' } else { 's' },
+                                path.display()
+                            );
+                        }
+                    }
+                    Err(why) => {
+                        eprintln!("Error: {why}");
+                        process::exit(1);
+                    }
+                }
+            }
+            None => println!("The sequence was empty."),
+        },
+        Err(why) => {
+            eprintln!("Error: {why}");
+            process::exit(1);
+        }
     }
 }

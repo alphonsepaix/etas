@@ -2,9 +2,12 @@ use clap::Parser;
 use indicatif::{ProgressBar, ProgressStyle};
 use rand::thread_rng;
 use rand_distr::{Distribution, Exp, Poisson, Uniform};
+use std::error::Error;
 use std::fs::File;
 use std::io::{BufWriter, Write};
 use std::path::Path;
+
+pub type CResult<T> = Result<T, Box<dyn Error>>;
 
 /// A structure used to parse command line arguments
 /// which holds the parameters needed to complete a simulation
@@ -85,20 +88,20 @@ pub struct Event {
 ///     println!("{} events were generated!", seq.len());
 /// }
 /// ```
-pub fn generate_sequence(args: &Args) -> Option<Vec<Event>> {
+pub fn generate_sequence(args: &Args) -> CResult<Option<Vec<Event>>> {
     let mut rng = thread_rng();
     let num_events =
-        Poisson::new(args.mu * args.t_end).unwrap().sample(&mut rng) as usize;
+        Poisson::new(args.mu * args.t_end)?.sample(&mut rng) as usize;
 
     // No events were generated
     if num_events == 0 {
-        return None;
+        return Ok(None);
     }
 
     let a = args.bar_n / (args.beta * args.c.powf(1.0 - args.p))
         * (args.p - 1.0)
         * (args.beta - args.alpha);
-    let exp = Exp::<f32>::new(args.beta).unwrap();
+    let exp = Exp::<f32>::new(args.beta)?;
     let uniform = Uniform::<f32>::from(0.0..1.0);
 
     // Generate the background events
@@ -123,9 +126,7 @@ pub fn generate_sequence(args: &Args) -> Option<Vec<Event>> {
     let template = "[{elapsed_precise}] {bar:50.cyan/blue} \
 {pos}/{len} -- {msg}";
     bar.set_style(
-        ProgressStyle::with_template(template)
-            .unwrap()
-            .progress_chars("##-"),
+        ProgressStyle::with_template(template)?.progress_chars("##-"),
     );
     let mut m_max = bg_m
         .iter()
@@ -196,10 +197,10 @@ pub fn generate_sequence(args: &Args) -> Option<Vec<Event>> {
     }
 
     if seq.is_empty() {
-        return None;
+        return Ok(None);
     }
 
-    Some(seq)
+    Ok(Some(seq))
 }
 
 /// Write a sequence of events to file
@@ -215,28 +216,15 @@ pub fn generate_sequence(args: &Args) -> Option<Vec<Event>> {
 ///     write_to_file(&seq, &args.filename, args.verbose);
 /// }
 /// ```
-pub fn write_to_file(seq: &Vec<Event>, filename: &String, verbose: bool) {
-    let path = Path::new(filename);
-    let display = path.display();
+pub fn write_to_file(seq: &[Event], path: &Path) -> CResult<()> {
+    let mut file = BufWriter::new(File::create(path)?);
 
-    let mut file = BufWriter::new(File::create(path).unwrap());
-
-    file.write_all(b"id,time,magnitude,parent\n").unwrap();
+    file.write_all(b"id,time,magnitude,parent\n")?;
 
     for (i, _) in seq.iter().enumerate() {
         let e = &seq[i];
-        file.write_fmt(format_args!("{},{},{},{}\n", i, e.t, e.m, e.parent))
-            .unwrap();
+        file.write_fmt(format_args!("{},{},{},{}\n", i, e.t, e.m, e.parent))?;
     }
 
-    let length = seq.len();
-
-    if verbose {
-        println!(
-            "{} event{} written to file '{}'.",
-            length,
-            if length == 1 { '\0' } else { 's' },
-            display
-        );
-    }
+    Ok(())
 }
