@@ -64,7 +64,8 @@ pub struct Event {
 
 pub fn generate_sequence(args: &Args) -> Option<Vec<Event>> {
     let mut rng = thread_rng();
-    let num_events = Poisson::new(args.mu * args.t_end).unwrap().sample(&mut rng) as usize;
+    let num_events =
+        Poisson::new(args.mu * args.t_end).unwrap().sample(&mut rng) as usize;
 
     if num_events == 0 {
         return None;
