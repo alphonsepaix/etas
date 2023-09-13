@@ -72,7 +72,7 @@ pub struct Event {
     /// The corresponding magnitude
     pub m: f32,
     /// The ID of the event that triggered this one
-    pub parent: i32,
+    pub parent: usize,
 }
 
 /// Generate an ETAS sequence
@@ -82,9 +82,9 @@ pub struct Event {
 /// use etas::{generate_sequence, Args};
 ///
 /// let args = Args::build().unwrap();
+/// let result = generate_sequence(&args).unwrap();
 ///
-/// let seq = generate_sequence(&args);
-/// if let Some(seq) = seq {
+/// if let Some(seq) = result {
 ///     println!("{} events were generated!", seq.len());
 /// }
 /// ```
@@ -157,7 +157,7 @@ pub fn generate_sequence(args: &Args) -> CResult<Option<Vec<Event>>> {
                     let t = tc + seq[n].t;
                     let m = exp.sample(&mut rng);
                     m_max = if m_max > m { m_max } else { m };
-                    let parent = n as i32;
+                    let parent = n;
                     seq.push(Event { t, m, parent });
                 } else {
                     break;
@@ -208,12 +208,14 @@ pub fn generate_sequence(args: &Args) -> CResult<Option<Vec<Event>>> {
 /// ## Usage
 /// ```
 /// use etas::{generate_sequence, write_to_file, Args};
+/// use std::path::Path;
 ///
 /// let args = Args::build().unwrap();
+/// let path = Path::new(&args.filename);
+/// let result = generate_sequence(&args).unwrap();
 ///
-/// let seq = generate_sequence(&args);
-/// if let Some(seq) = seq {
-///     write_to_file(&seq, &args.filename, args.verbose);
+/// if let Some(seq) = result {
+///     write_to_file(&seq, path).unwrap();
 /// }
 /// ```
 pub fn write_to_file(seq: &[Event], path: &Path) -> CResult<()> {
