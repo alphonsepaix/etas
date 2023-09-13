@@ -172,6 +172,7 @@ dependencies = [
  "clap",
  "indicatif",
  "rand",
+ "rand_chacha",
  "rand_distr",
 ]
 

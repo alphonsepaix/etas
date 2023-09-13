@@ -1,6 +1,7 @@
 use clap::Parser;
 use indicatif::{ProgressBar, ProgressStyle};
-use rand::thread_rng;
+use rand_chacha::rand_core::SeedableRng;
+use rand_chacha::ChaCha8Rng;
 use rand_distr::{Distribution, Exp, Poisson, Uniform};
 use std::error::Error;
 use std::fs::File;
@@ -12,7 +13,7 @@ pub type CResult<T> = Result<T, Box<dyn Error>>;
 /// A structure used to parse command line arguments
 /// which holds the parameters needed to complete a simulation
 #[derive(Parser)]
-#[command(about)]
+#[command(author, version, about, long_about = None)]
 pub struct Args {
     #[arg(long, default_value_t = 1.0)]
     pub mu: f32,
@@ -47,6 +48,10 @@ pub struct Args {
     /// Display a progress bar during simulation
     #[arg(long, default_value_t = false)]
     pub verbose: bool,
+
+    /// Create the PRNG using the given seed
+    #[arg(long)]
+    pub seed: Option<u64>,
 }
 
 impl Args {
@@ -89,7 +94,12 @@ pub struct Event {
 /// }
 /// ```
 pub fn generate_sequence(args: &Args) -> CResult<Option<Vec<Event>>> {
-    let mut rng = thread_rng();
+    let mut rng = if let Some(seed) = args.seed {
+        ChaCha8Rng::seed_from_u64(seed)
+    } else {
+        ChaCha8Rng::from_entropy()
+    };
+
     let num_events =
         Poisson::new(args.mu * args.t_end)?.sample(&mut rng) as usize;
 
