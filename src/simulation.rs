@@ -155,7 +155,12 @@ impl Sequence {
         Ok(Self(seq))
     }
 
-    pub fn save(&self, path: &Path, verbose: bool) -> AppResult<()> {
+    pub fn save(
+        &self,
+        path: &Path,
+        verbose: bool,
+        headers: bool,
+    ) -> AppResult<()> {
         if self.is_empty() {
             if verbose {
                 println!("Empty sequence: no events were saved.");
@@ -167,8 +172,10 @@ impl Sequence {
             File::create(path).map_err(|e| AppError::Save(e.to_string()))?,
         );
 
-        file.write_all(b"id,time,magnitude,parent\n")
-            .map_err(|e| AppError::Save(e.to_string()))?;
+        if headers {
+            file.write_all(b"id,time,magnitude,parent\n")
+                .map_err(|e| AppError::Save(e.to_string()))?;
+        }
 
         for (i, e) in self.iter().enumerate() {
             file.write_fmt(format_args!(

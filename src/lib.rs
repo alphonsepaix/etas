@@ -1,12 +1,13 @@
 pub mod app;
 pub mod simulation;
+pub mod ui;
 
 pub mod constants {
     pub const TEMPLATE: &str =
         "[{elapsed_precise}] {bar:50.cyan/blue} {pos}/{len} -- {msg}";
 
     pub const WINDOW_TITLE: &str = "ETAS";
-    pub const WINDOW_WIDTH: f32 = 300.0;
+    pub const WINDOW_WIDTH: f32 = 330.0;
     pub const WINDOW_HEIGHT: f32 = 300.0;
 
     pub const DEFAULT_MU: f32 = 1.0;

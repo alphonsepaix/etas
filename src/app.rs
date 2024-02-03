@@ -2,11 +2,12 @@ use std::fmt::Display;
 
 use crate::constants::*;
 use clap::Parser;
-use eframe::egui;
 
+#[derive(Debug)]
 pub enum AppError {
     Save(String),
     Simulation(String),
+    InvalidArgument(String),
 }
 
 impl Display for AppError {
@@ -15,6 +16,9 @@ impl Display for AppError {
             AppError::Save(why) => write!(f, "Error when saving: {why}"),
             AppError::Simulation(why) => {
                 write!(f, "Error during simulation: {why}")
+            }
+            AppError::InvalidArgument(why) => {
+                write!(f, "Wrong argument: {why}")
             }
         }
     }
@@ -56,6 +60,9 @@ pub struct App {
     pub verbose: bool,
 
     #[arg(long)]
+    pub headers: bool,
+
+    #[arg(long)]
     pub no_gui: bool,
 
     #[arg(long)]
@@ -63,31 +70,25 @@ pub struct App {
 }
 
 impl App {
-    pub fn build() -> Result<Self, &'static str> {
+    pub fn build() -> AppResult<Self> {
         let args = App::parse();
-
-        if args.p <= 1.0 {
-            return Err("p must be > 1");
-        }
-
-        if args.alpha >= args.beta {
-            return Err("alpha must be < beta");
-        }
-
+        // args.validate()?;
         Ok(args)
     }
-}
 
-impl eframe::App for App {
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        egui::CentralPanel::default().show(ctx, |ui| {
-            ui.heading("My app");
-            ui.add(
-                egui::Slider::new(&mut self.t_end, 0.0..=10000.0).text("T"),
-            );
-            if ui.button("Increment").clicked() {
-                self.t_end += 100.0;
-            }
-        });
+    // Validate arguments
+    pub fn validate(&self) -> AppResult<()> {
+        if self.p <= 1.0 {
+            return Err(AppError::InvalidArgument("p must be > 1".to_owned()));
+        }
+
+        if self.alpha >= self.beta {
+            return Err(AppError::InvalidArgument(
+                "alpha must be < beta".to_owned(),
+            ));
+        }
+
+        // Check other arguments
+        todo!()
     }
 }
