@@ -10,6 +10,7 @@ authors = ["Alphonse Paix <alphonse.paix@outlook.com>"]
 
 [dependencies]
 clap = { version = "4.3.19", features = ["derive"] }
+eframe = "0.25.0"
 indicatif = "0.17.6"
 rand = "0.8.5"
 rand_chacha = "0.3.1"

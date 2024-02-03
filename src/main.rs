@@ -1,10 +1,12 @@
-use etas::{generate_sequence, write_to_file, Args};
+use eframe::egui;
+use etas::app::App;
+use etas::constants::*;
+use etas::simulation::Sequence;
 use std::path::Path;
 use std::process;
 
 fn main() {
-    // Try to parse the command line arguments
-    let args = match Args::build() {
+    let args = match App::build() {
         Ok(args) => args,
         Err(why) => {
             eprintln!("Error: {why}");
@@ -12,34 +14,22 @@ fn main() {
         }
     };
 
-    // Launch a simulation with the provided arguments
-    match generate_sequence(&args) {
-        Ok(result) => match result {
-            Some(seq) => {
-                let path = Path::new(&args.filename);
-                match write_to_file(&seq, path) {
-                    Ok(_) => {
-                        let length = seq.len();
-                        if args.verbose {
-                            println!(
-                                "{} event{} written to file '{}'.",
-                                length,
-                                if length == 1 { '\0' } else { 's' },
-                                path.display()
-                            );
-                        }
-                    }
-                    Err(why) => {
-                        eprintln!("Error: {why}");
-                        process::exit(1);
-                    }
-                }
-            }
-            None => println!("The sequence was empty."),
-        },
-        Err(why) => {
-            eprintln!("Error: {why}");
+    if args.no_gui {
+        if let Err(e) = Sequence::generate(&args).map(|sequence| {
+            let path = Path::new(&args.filename);
+            let verbose = args.verbose;
+            sequence.save(path, verbose)
+        }) {
+            eprintln!("Error: {e}");
             process::exit(1);
         }
+    } else {
+        let options = eframe::NativeOptions {
+            viewport: egui::ViewportBuilder::default()
+                .with_inner_size([WINDOW_WIDTH, WINDOW_HEIGHT]),
+            ..Default::default()
+        };
+        eframe::run_native("ETAS", options, Box::new(|_| Box::new(args)))
+            .unwrap();
     }
 }
