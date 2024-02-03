@@ -28,7 +28,7 @@ pub type AppResult<T> = Result<T, AppError>;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
-pub struct App {
+pub struct Args {
     #[arg(long, default_value_t = DEFAULT_MU)]
     pub mu: f32,
 
@@ -69,26 +69,62 @@ pub struct App {
     pub seed: Option<u64>,
 }
 
-impl App {
+impl Args {
     pub fn build() -> AppResult<Self> {
-        let args = App::parse();
-        // args.validate()?;
+        let args = Args::parse();
+        args.check_arguments()?;
         Ok(args)
     }
 
-    // Validate arguments
-    pub fn validate(&self) -> AppResult<()> {
+    pub fn check_arguments(&self) -> AppResult<()> {
+        if self.beta < 0.0 {
+            return Err(AppError::InvalidArgument(
+                "beta must be >= 0".to_owned(),
+            ));
+        }
+        if self.mu < 0.0 {
+            return Err(AppError::InvalidArgument(
+                "mu must be >= 0".to_owned(),
+            ));
+        }
         if self.p <= 1.0 {
             return Err(AppError::InvalidArgument("p must be > 1".to_owned()));
         }
-
+        if self.bar_n >= 1.0 {
+            return Err(AppError::InvalidArgument(
+                "bar_n must be < 1".to_owned(),
+            ));
+        }
+        if self.t_end <= 0.0 {
+            return Err(AppError::InvalidArgument(
+                "t_end must be > 0".to_owned(),
+            ));
+        }
         if self.alpha >= self.beta {
             return Err(AppError::InvalidArgument(
                 "alpha must be < beta".to_owned(),
             ));
         }
+        Ok(())
+    }
+}
 
-        // Check other arguments
-        todo!()
+impl Default for Args {
+    fn default() -> Self {
+        Self {
+            mu: DEFAULT_MU,
+            alpha: DEFAULT_ALPHA,
+            bar_n: DEFAULT_BAR_N,
+            p: DEFAULT_P,
+            c: DEFAULT_C,
+            beta: f32::ln(DEFAULT_EXP_BETA),
+            t_end: DEFAULT_T_END,
+            max_len: None,
+            filename: DEFAULT_FILENAME.to_owned(),
+            verbose: false,
+            headers: false,
+            no_gui: false,
+            seed: None,
+        }
     }
 }

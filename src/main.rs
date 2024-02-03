@@ -1,5 +1,5 @@
 use eframe::egui::{self, FontData, FontDefinitions};
-use etas::app::App;
+use etas::app::Args;
 use etas::constants::*;
 use etas::simulation::Sequence;
 use etas::ui::WidgetGallery;
@@ -7,7 +7,7 @@ use std::path::Path;
 use std::process;
 
 fn main() {
-    let args = match App::build() {
+    let args = match Args::build() {
         Ok(args) => args,
         Err(why) => {
             eprintln!("Error: {why}");

@@ -1,6 +1,6 @@
-use crate::app::App;
 use crate::app::AppError;
 use crate::app::AppResult;
+use crate::app::Args;
 use crate::constants::TEMPLATE;
 use indicatif::{ProgressBar, ProgressStyle};
 use rand_chacha::rand_core::SeedableRng;
@@ -36,7 +36,13 @@ impl DerefMut for Sequence {
 }
 
 impl Sequence {
-    pub fn generate(args: &App) -> AppResult<Self> {
+    pub fn generate(args: &Args) -> AppResult<Self> {
+        // The GUI can change arguments during execution.
+        args.check_arguments().map_err(|err| {
+            eprintln!("{err}");
+            err
+        })?;
+
         let mut rng = if let Some(seed) = args.seed {
             ChaCha8Rng::seed_from_u64(seed)
         } else {
@@ -47,7 +53,7 @@ impl Sequence {
             .map_err(|e| AppError::Simulation(e.to_string()))?
             .sample(&mut rng) as usize;
 
-        // No events were generated
+        // No events were generated.
         if num_events == 0 {
             return Ok(Self(vec![]));
         }
@@ -59,7 +65,7 @@ impl Sequence {
             .map_err(|e| AppError::Simulation(e.to_string()))?;
         let uniform = Uniform::<f32>::from(0.0..1.0);
 
-        // Generate the background events
+        // Generate the background events.
         let bg_t: Vec<f32> = Uniform::from(0.0..args.t_end)
             .sample_iter(&mut rng)
             .take(num_events)
@@ -75,7 +81,7 @@ impl Sequence {
             });
         }
 
-        // Sort the background events
+        // Sort the background events.
         seq.sort_by(|e1, e2| e1.t.partial_cmp(&e2.t).unwrap());
 
         let bar = ProgressBar::new(args.t_end as u64);
@@ -92,7 +98,7 @@ impl Sequence {
         let mut n = 0;
         let mut simulation_ended = false;
 
-        // Generate all aftershocks
+        // Generate all aftershocks.
         loop {
             let mut tc = 0.0;
 
