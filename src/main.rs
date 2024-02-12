@@ -30,6 +30,7 @@ fn main() {
                 .with_inner_size((WINDOW_WIDTH, WINDOW_HEIGHT))
                 .with_resizable(false),
             follow_system_theme: true,
+            default_theme: eframe::Theme::Light,
             ..Default::default()
         };
         eframe::run_native(

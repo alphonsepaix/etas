@@ -26,7 +26,7 @@ impl Display for AppError {
 
 pub type AppResult<T> = Result<T, AppError>;
 
-#[derive(Parser)]
+#[derive(Clone, Parser)]
 #[command(author, version, about, long_about = None)]
 pub struct Args {
     #[arg(long, default_value_t = DEFAULT_MU)]

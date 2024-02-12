@@ -1,28 +1,29 @@
 use std::path::Path;
-
+use std::sync::{Arc, Mutex};
+use std::thread;
 use crate::{app::Args, simulation::Sequence};
 use eframe::egui;
 
 pub struct WidgetGallery {
     args: Args,
-    sequence: Option<Sequence>,
+    sequence: Arc<Mutex<Option<Sequence>>>,
 }
 
 impl WidgetGallery {
     pub fn build(app: Args) -> Self {
         Self {
             args: app,
-            sequence: None,
+            sequence: Arc::new(Mutex::new(None)),
         }
     }
 
     fn save_sequence(&mut self, clear: bool) {
-        if let Some(seq) = &self.sequence {
+        if let Some(seq) = self.sequence.lock().unwrap().as_ref() {
             let path = Path::new(&self.args.filename);
             seq.save(path, self.args.verbose, self.args.headers)
                 .map(|_| {
                     if clear {
-                        self.sequence = None;
+                        *self.sequence.lock().unwrap() = None;
                     }
                 })
                 .expect("Could not save sequence on disk");
@@ -135,7 +136,7 @@ impl eframe::App for WidgetGallery {
 
             ui.separator();
 
-            let n = self.sequence.as_ref().map(|s| s.len()).unwrap_or(0);
+            let n = self.sequence.lock().unwrap().as_ref().map(|s| s.len()).unwrap_or(0);
             let label = if n > 0 {
                 format!(
                     "{} event{} in memory",
@@ -149,10 +150,16 @@ impl eframe::App for WidgetGallery {
 
             ui.horizontal(|ui| {
                 if ui.button("Generate").clicked() {
-                    self.sequence = Sequence::generate(&self.args).ok();
+                    thread::spawn({
+                        let sequence = self.sequence.clone();
+                        let args = self.args.clone();
+                        move || {
+                            *sequence.lock().unwrap() = Sequence::generate(&args).ok();
+                        }
+                    });
                 }
                 if ui.button("Clear").clicked() {
-                    self.sequence = None;
+                    *self.sequence.lock().unwrap() = None;
                 }
             });
 
